@@ -138,7 +138,7 @@ impl ToComplex for (u32, u32){
     }
     
 }
-//#[time_function]
+
 fn filename(extension: &str) -> String {
     let now: datetime::Instant = datetime::Instant::now();
     println!("{}_{}", now.seconds().to_string(), now.milliseconds().to_string());
