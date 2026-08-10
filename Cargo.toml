@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+code-timing-macros = {version = "0.0.7", features = ["release"]}
 image = "0.25.10"

@@ -1,4 +1,5 @@
 use std::ops;
+use code_timing_macros::{time_function};
 use image::{self, Rgb};
 
 const X_RESOLUTION: u32 = 2_000;
@@ -61,40 +62,38 @@ impl ops::Mul<f64> for Complex {
 }
 
 trait Rainbow{
-    fn rainbow(self) -> image::Rgb<u8>;
-    fn greyscale(self) -> image::Rgb<u8>;
+    fn rainbow(self) -> [u8;3];
+    fn greyscale(self) -> [u8;3];
 }
 
 impl Rainbow for u16 {
-    fn rainbow(self) -> image::Rgb<u8> {
+    fn rainbow(self) -> [u8;3] {
         let (sin_1, sin_2, sin_3) = 
         ( ((self as f64)*0.1).sin(), 
         ((self as f64)*0.1 + (1.0/3.0 * PI)).sin(), 
         ((self as f64)*0.1 + (2.0/3.0 * PI)).sin() );
         let (sin_sq_1, sin_sq_2, sin_sq_3) = (sin_1*sin_1, sin_2*sin_2, sin_3*sin_3);
-        image::Rgb::from([(255.0*sin_sq_1) as u8, (255.0*sin_sq_2) as u8, (255.0*sin_sq_3) as u8])
+        [(255.0*sin_sq_1) as u8, (255.0*sin_sq_2) as u8, (255.0*sin_sq_3) as u8]
     }
-    fn greyscale(self) -> image::Rgb<u8> {
-        image::Rgb::from(
+    fn greyscale(self) -> [u8;3] {
             [((self*10) % 255) as u8, 
             ((self*10) % 255) as u8, 
             ((self*10) % 255) as u8]
-        )
     }
 }
 
 trait RgbFromInt{
-    fn rgb(&self) -> image::Rgb<u8>;
+    fn rgb(&self) -> [u8;3];
 }
 
 impl RgbFromInt for Option<u16> {
-    fn rgb(&self) -> image::Rgb<u8> {
+    fn rgb(&self) -> [u8;3] {
         match &self {
-            None => image::Rgb::from([0,0,0]),
+            None => [0,0,0],
             Some(i) => match MODE {
                 0 => i.greyscale(),
                 1 => i.rainbow(),
-                _ => image::Rgb::from([0,0,0])
+                _ => [0,0,0]
             }
         }
     }
@@ -102,7 +101,7 @@ impl RgbFromInt for Option<u16> {
 
 trait ToComplex{
     fn normalise_in_x(self) -> Complex;
-    fn get_rgb_value(self, scale_factor: f64, translation: Complex) -> Rgb<u8>;
+    fn get_rgb_value(self, scale_factor: f64, translation: Complex) -> [u8;3];
 }
 impl ToComplex for (u32, u32){
     fn normalise_in_x (self) -> Complex {
@@ -113,7 +112,7 @@ impl ToComplex for (u32, u32){
         }
     }
 
-    fn get_rgb_value(self, scale_factor: f64, translation: Complex) -> Rgb<u8> {
+    fn get_rgb_value(self, scale_factor: f64, translation: Complex) -> [u8;3] {
         let mut z = self.normalise_in_x();
         z = z.affine_transform(scale_factor, translation);
         z.escape_time_mdlbrt().rgb()
@@ -121,6 +120,7 @@ impl ToComplex for (u32, u32){
     
 }
 
+#[time_function]
 fn main() {
     //let a: f64 = -0.03942862882707475;
     //let b: f64 = -0.9880027977017277;
@@ -128,9 +128,17 @@ fn main() {
 
     let scale_factor: f64 = 2.0 ;
 
-    let image_buffer: image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_fn(X_RESOLUTION, 
-    Y_RESOLUTION, 
-    |x, y | (x,y).get_rgb_value(scale_factor, translation)
-    );
+    //let image_buffer: image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_fn(X_RESOLUTION, Y_RESOLUTION, |x, y | (x,y).get_rgb_value(scale_factor, translation));
+
+    let mut pixels_vec: Vec<u8> = Vec::new();
+    for y in 0..Y_RESOLUTION{
+        for x in 0..X_RESOLUTION{
+            let x: [u8;3] = (x,y).get_rgb_value(scale_factor, translation);
+            pixels_vec.push(x[0]);
+            pixels_vec.push(x[1]);
+            pixels_vec.push(x[2]);
+        }
+    }
+    let image_buffer:image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(X_RESOLUTION, Y_RESOLUTION, pixels_vec).expect("oops");
     let _ = image_buffer.save("mdlbrt.png");
 }
