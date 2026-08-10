@@ -3,12 +3,12 @@ use code_timing_macros::{time_function};
 use image::{self, Rgb};
 
 const X_RESOLUTION: u32 = 2_000;
-const Y_RESOLUTION: u32 = 2_000;
+const Y_RESOLUTION: u32 = 1_001;
 
 const X_RESOLUTION_AS_FLOAT: f64 = X_RESOLUTION as f64;
 const Y_RESOLUTION_AS_FLOAT: f64 = Y_RESOLUTION as f64;
 
-const MODE: u8 = 0;
+const MODE: u8 = 1;
 
 const ESCAPE_LIMIT: u16 = 1_000;
 
@@ -122,11 +122,11 @@ impl ToComplex for (u32, u32){
 
 #[time_function]
 fn main() {
-    //let a: f64 = -0.03942862882707475;
-    //let b: f64 = -0.9880027977017277;
-    let translation = Complex{re: 0.0, im: 0.0};
+    let a: f64 = -0.03942862882707475;
+    let b: f64 = -0.9880027977017277;
+    let translation = Complex{re: a, im: b};
 
-    let scale_factor: f64 = 2.0 ;
+    let scale_factor: f64 = 1.0/100.0 ;
 
     //let image_buffer: image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_fn(X_RESOLUTION, Y_RESOLUTION, |x, y | (x,y).get_rgb_value(scale_factor, translation));
 
@@ -139,6 +139,6 @@ fn main() {
             pixels_vec.push(x[2]);
         }
     }
-    let image_buffer:image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(X_RESOLUTION, Y_RESOLUTION, pixels_vec).expect("oops");
-    let _ = image_buffer.save("mdlbrt.png");
+    let image_buffer:image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(Y_RESOLUTION, X_RESOLUTION, pixels_vec).expect("oops");
+    let _ = image_buffer.save("images/mdlbrt.png");
 }
