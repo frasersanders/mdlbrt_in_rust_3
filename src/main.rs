@@ -1,6 +1,7 @@
-use std::ops;
+use std::{ops, println};
 use code_timing_macros::{time_function};
 use image::{self, Rgb};
+use datetime;
 
 const X_RESOLUTION: u32 = 2_000;
 const Y_RESOLUTION: u32 = 1_001;
@@ -120,6 +121,14 @@ impl ToComplex for (u32, u32){
     
 }
 
+fn filename() -> String {
+    let now: datetime::Instant = datetime::Instant::now();
+    //let output: String = "images/{:?}", now;
+    println!("{}", now.seconds().to_string());
+    "images/mdlbrt".to_string() + &now.seconds().to_string() + ".png"
+}
+
+
 #[time_function]
 fn main() {
     let a: f64 = -0.03942862882707475;
@@ -140,5 +149,6 @@ fn main() {
         }
     }
     let image_buffer:image::ImageBuffer<Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(Y_RESOLUTION, X_RESOLUTION, pixels_vec).expect("oops");
-    let _ = image_buffer.save("images/mdlbrt.png");
+    //let _ = image_buffer.save("images/mdlbrt.png");
+    let _ = image_buffer.save(filename());
 }
